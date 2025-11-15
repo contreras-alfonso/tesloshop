@@ -53,4 +53,14 @@ export class ProductsService {
       tap((response) => this.productsSlugCache.set(idSlug, response))
     );
   }
+
+  getProductById(id: string) {
+    if (this.productsSlugCache.has(id)) {
+      return of(this.productsSlugCache.get(id));
+    }
+    return this.http.get<Product>(`${BACKEND_URL}/api/products/${id}`).pipe(
+      tap((response) => console.log(response)),
+      tap((response) => this.productsSlugCache.set(id, response))
+    );
+  }
 }
