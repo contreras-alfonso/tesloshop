@@ -1,11 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import {
+  Gender,
   Product,
   ProductsResponse,
 } from '../interfaces/product-response.interface';
 import { delay, Observable, of, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { User } from '@/auth/interfaces/user.interface';
 
 const BACKEND_URL = environment.BACKEND_URL;
 
@@ -14,6 +16,20 @@ interface QueryOptions {
   offset?: number;
   gender?: string;
 }
+
+const emptyProduct: Product = {
+  id: 'new',
+  title: '',
+  price: 0,
+  description: '',
+  slug: '',
+  stock: 0,
+  sizes: [],
+  gender: Gender.Men,
+  tags: [],
+  images: [],
+  user: {} as User,
+};
 
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
@@ -55,12 +71,41 @@ export class ProductsService {
   }
 
   getProductById(id: string) {
+    if (id === 'new') {
+      return of(emptyProduct);
+    }
+
     if (this.productsSlugCache.has(id)) {
       return of(this.productsSlugCache.get(id));
     }
-    return this.http.get<Product>(`${BACKEND_URL}/api/products/${id}`).pipe(
-      tap((response) => console.log(response)),
-      tap((response) => this.productsSlugCache.set(id, response))
-    );
+    return this.http
+      .get<Product>(`${BACKEND_URL}/api/products/${id}`)
+      .pipe(tap((response) => this.productsSlugCache.set(id, response)));
+  }
+
+  updateProduct(id: string, productLike: Partial<Product>) {
+    console.log('Actualizando producto');
+
+    return this.http
+      .patch<Product>(`${BACKEND_URL}/api/products/${id}`, productLike)
+      .pipe(tap((product) => this.updateProductCache(product)));
+  }
+
+  updateProductCache(product: Product) {
+    const productId = product.id;
+    this.productsSlugCache.set(productId, product);
+
+    this.productsCache.forEach((productResponse) => {
+      productResponse.products = productResponse.products.map(
+        (currentProduct) =>
+          currentProduct.id === productId ? product : currentProduct
+      );
+    });
+  }
+
+  createProduct(productLike: Partial<Product>): Observable<Product> {
+    return this.http
+      .post<Product>(`${BACKEND_URL}/api/products`, productLike)
+      .pipe(tap((product) => this.updateProductCache(product)));
   }
 }
