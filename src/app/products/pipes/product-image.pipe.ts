@@ -12,6 +12,12 @@ export class ProductImagePipe implements PipeTransform {
       return './assets/images/no-image.jpg';
     }
 
+    console.log('caso de if fuera');
+    if (typeof value === 'string' && value.startsWith('blob')) {
+      console.log('caso de if ', value);
+      return `${value}`;
+    }
+
     if (typeof value === 'string') {
       return `${BACKEND_URL}/api/files/product/${value}`;
     }

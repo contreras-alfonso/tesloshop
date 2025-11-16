@@ -30,7 +30,7 @@
     <field-error [form]="productForm" fieldName="slug" />
 
     <textarea
-      class="textarea textarea-bordered"
+      class="textarea textarea-bordered w-full"
       placeholder="Descripción"
       rows="6"
       formControlName="description"
@@ -146,9 +146,25 @@
       </button>
     </div>
 
-    <product-carousel [images]="product().images" />
+    <product-carousel [images]="imagesToCarousel()" />
 
-    <input type="file" class="file-input file-input-bordered w-full mt-4" />
+    <input
+      type="file"
+      multiple
+      accept="image/*"
+      class="file-input file-input-bordered w-full mt-4"
+      (change)="onFilesChanged($event)"
+    />
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 mt-2 gap-2">
+      @for (image of tempImages(); track image) {
+      <img
+        [src]="image"
+        alt="Temporal image"
+        class="w-full object-cover rounded-xl cursor-pointer"
+      />
+      }
+    </div>
   </div>
 </form>
 
